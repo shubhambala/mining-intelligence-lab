@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mining Intelligence Lab™ V3.4 Launch Edition</title>
+<style>
+:root{--o:#f97316;--bg:#020617;}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:#fff;font-family:Arial,sans-serif}
+.section{min-height:100vh;position:relative;display:flex;align-items:center;padding:80px 8%;background-size:cover;background-position:center;overflow:hidden}
+.overlay{position:absolute;inset:0;background:rgba(2,6,23,.72)}
+.content{position:relative;z-index:2;max-width:1200px;width:100%}
+.card{background:rgba(15,23,42,.92);padding:18px;border-radius:14px;border:1px solid #334155}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.label{color:var(--o);letter-spacing:2px;font-size:12px;font-weight:bold}
+.orange{color:var(--o)}
+.big{font-size:clamp(60px,10vw,130px);font-weight:800}
+.navbtns{position:absolute;bottom:20px;left:8%;right:8%;display:flex;justify-content:space-between;z-index:3}
+.btn{background:var(--o);padding:10px 18px;border-radius:999px;color:#fff;text-decoration:none}
+#progress,#leak{position:fixed;z-index:999;background:#0f172a;padding:10px 14px;border-radius:10px}
+#progress{top:15px;right:15px}
+#leak{top:15px;left:15px}
+.strength{height:10px;background:#1e293b;border-radius:10px;margin-top:8px}
+.strength span{display:block;height:100%;background:var(--o)}
+.kpiup{color:#22c55e}.kpidown{color:#ef4444}
+.bgmove{animation:zoom 18s ease-in-out infinite alternate}
+@keyframes zoom{from{transform:scale(1)}to{transform:scale(1.08)}}
+.pulse{animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.7}}
+</style>
+</head>
+<body>
+<div id="leak">Leakage: ₹0/T</div>
+<div id="progress">Screen 1 / 10</div>
+
+<section id="s1" class="section" data-i="1" style="background-image:url('01_Hero_Excavator_Loading.jpg')">
+<div class="overlay"></div><div class="content">
+<div class="label">CASE FILE #001</div>
+<h1>Record Production.<br>Falling Profitability.</h1>
+<h2 class="orange">The ₹17/T Mystery</h2>
+</div><div class="navbtns"><span></span><a class="btn" href="#s2">Continue →</a></div></section>
+
+<section id="s2" class="section" data-i="2">
+<div class="content">
+<div class="label">EXECUTIVE BRIEF</div>
+<div class="grid">
+<div class="card"><h2 class="kpiup">↑10%</h2>Production</div>
+<div class="card"><h2 class="kpidown">↑₹17/T</h2>Cost/Tonne</div>
+<div class="card"><h2 class="kpidown">↓</h2>Profitability</div>
+</div></div>
+<div class="navbtns"><a class="btn" href="#s1">← Previous</a><a class="btn" href="#s3">Continue →</a></div></section>
+
+<section id="s3" class="section" data-i="3" data-leak="3" style="background-image:url('02_Drilling.png')">
+<div class="overlay"></div><div class="content">
+<div class="label">EVIDENCE FILE 01</div><h2>Fragmentation Variability</h2>
+<div class="card">Impact: +₹3/T | AI Opportunity: Fragmentation Analytics</div>
+<p>Evidence Strength</p><div class="strength"><span style="width:65%"></span></div>
+</div><div class="navbtns"><a class="btn" href="#s2">← Previous</a><a class="btn" href="#s4">Continue →</a></div></section>
+
+<section id="s4" class="section" data-i="4" data-leak="5" style="background-image:url('03_Excavator_Face.png')">
+<div class="overlay"></div><div class="content">
+<div class="label">EVIDENCE FILE 02</div><h2>Loading Efficiency</h2>
+<div class="card">Impact: +₹2/T | AI Opportunity: Fleet Analytics</div>
+<p>Evidence Strength</p><div class="strength"><span style="width:70%"></span></div>
+</div><div class="navbtns"><a class="btn" href="#s3">← Previous</a><a class="btn" href="#s5">Continue →</a></div></section>
+
+<section id="s5" class="section" data-i="5" data-leak="15" style="background-image:url('04_Haul_Road.png')">
+<div class="overlay"></div><div class="content">
+<div class="label">PRIME SUSPECT</div>
+<h1 class="orange pulse">₹10/T</h1>
+<div class="grid">
+<div class="card">Idle Time ↑ ₹4/T</div>
+<div class="card">Road ↑ ₹3/T</div>
+<div class="card">Queue ↑ ₹2/T</div>
+<div class="card">Payload ↑ ₹1/T</div>
+</div>
+<p>59% of total leakage</p>
+<p>Evidence Strength</p><div class="strength"><span style="width:95%"></span></div>
+</div><div class="navbtns"><a class="btn" href="#s4">← Previous</a><a class="btn" href="#s6">Continue →</a></div></section>
+
+<section id="s6" class="section" data-i="6" data-leak="17" style="background-image:url('05_Crusher_Hopper.png')">
+<div class="overlay"></div><div class="content">
+<div class="label">FINAL EVIDENCE</div>
+<div class="card">Crusher +₹1/T | Plant Interface +₹1/T</div>
+</div><div class="navbtns"><a class="btn" href="#s5">← Previous</a><a class="btn" href="#s7">Continue →</a></div></section>
+
+<section id="s7" class="section" data-i="7">
+<div class="content"><div class="label">CASE CLOSURE</div>
+<div class="big">₹17/T</div></div>
+<div class="navbtns"><a class="btn" href="#s6">← Previous</a><a class="btn" href="#s8">Continue →</a></div></section>
+
+<section id="s8" class="section" data-i="8">
+<div class="content"><div class="label">FINANCIAL CONSEQUENCE</div>
+<div class="big">₹9.35 Cr</div></div>
+<div class="navbtns"><a class="btn" href="#s7">← Previous</a><a class="btn" href="#s9">Continue →</a></div></section>
+
+<section id="s9" class="section" data-i="9">
+<div class="content"><h1>The mine did not have a production problem.</h1><h1 class="orange">It had a decision quality problem.</h1></div>
+<div class="navbtns"><a class="btn" href="#s8">← Previous</a><a class="btn" href="#s10">Continue →</a></div></section>
+
+<section id="s10" class="section" data-i="10">
+<div class="content"><h1>Great mines don't optimize production.</h1><h1 class="orange">Great mines optimize decisions.</h1></div>
+<div class="navbtns"><a class="btn" href="#s9">← Previous</a><span></span></div></section>
+
+<script>
+const p=document.getElementById('progress');
+const l=document.getElementById('leak');
+const obs=new IntersectionObserver(es=>{
+es.forEach(e=>{
+if(e.isIntersecting){
+p.innerText='Screen '+e.target.dataset.i+' / 10';
+if(e.target.dataset.leak){l.innerText='Leakage: ₹'+e.target.dataset.leak+'/T';}
+}
+})
+},{threshold:.55});
+document.querySelectorAll('.section').forEach(s=>obs.observe(s));
+</script>
+</body></html>
