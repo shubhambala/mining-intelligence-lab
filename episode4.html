@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MIL Episode 04 — The Recovery Intelligence Puzzle</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy:    #04111f;
+  --deep:    #071e34;
+  --cyan:    #22d3ee;
+  --cyan2:   #0891b2;
+  --orange:  #f97316;
+  --emerald: #10b981;
+  --emerald2:#059669;
+  --white:   #f1f5f9;
+  --muted:   #64748b;
+  --slate:   #1e3a52;
+  --border:  rgba(16,185,129,0.12);
+  --card:    rgba(7,30,52,0.88);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--navy);color:var(--white);font-family:'Segoe UI',Arial,sans-serif;overflow-x:hidden}
+
+/* ── SCREEN SYSTEM ── */
+.screen{
+  display:none;
+  min-height:100vh;
+  position:relative;
+  flex-direction:column;
+  justify-content:center;
+  padding:70px 6% 90px;
+  background-size:cover;
+  background-position:center;
+  overflow:hidden;
+}
+.screen.active{display:flex}
+.screen-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(4,17,31,0.93) 0%,rgba(4,17,31,0.78) 100%);
+  z-index:0;
+}
+.screen-content{position:relative;z-index:2;width:100%;max-width:1100px;margin:0 auto}
+
+/* ── HUD ── */
+#hud-left,#hud-right{
+  position:fixed;top:14px;z-index:999;
+  background:rgba(4,17,31,0.92);
+  border:1px solid rgba(16,185,129,0.18);
+  padding:7px 14px;border-radius:8px;
+  font-size:11px;letter-spacing:0.5px;
+}
+#hud-left{left:14px;color:var(--muted)}
+#hud-left span{color:var(--emerald);font-weight:700}
+#hud-right{right:14px;color:var(--muted);text-align:right}
+#hud-right span{color:var(--white);font-weight:700}
+
+/* ── NAV ── */
+.nav-row{
+  position:fixed;bottom:0;left:0;right:0;z-index:999;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 6%;
+  background:linear-gradient(to top,rgba(4,17,31,1) 60%,transparent);
+}
+.nav-btn{
+  display:flex;align-items:center;gap:8px;
+  background:transparent;
+  border:1px solid rgba(16,185,129,0.25);
+  color:var(--white);padding:9px 20px;
+  border-radius:999px;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all 0.2s;text-decoration:none;
+  letter-spacing:0.3px;
+}
+.nav-btn:hover{background:rgba(16,185,129,0.08);border-color:var(--emerald)}
+.nav-btn.primary{background:var(--emerald2);border-color:var(--emerald2);color:#fff}
+.nav-btn.primary:hover{background:var(--emerald);border-color:var(--emerald);color:var(--navy)}
+.nav-dots{display:flex;gap:6px;align-items:center}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--slate);transition:all 0.3s;cursor:pointer}
+.dot.active{background:var(--emerald);width:20px;border-radius:3px}
+
+/* ── TYPE ── */
+.eyebrow{
+  font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--emerald);margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.eyebrow::before{content:'';width:20px;height:1px;background:var(--emerald)}
+h1{font-size:clamp(30px,5vw,58px);font-weight:800;line-height:1.1;margin-bottom:12px}
+h2{font-size:clamp(20px,3vw,34px);font-weight:700;line-height:1.2;margin-bottom:10px}
+.emerald{color:var(--emerald)}
+.cyan{color:var(--cyan)}
+.orange{color:var(--orange)}
+.muted{color:var(--muted)}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 16px}
+.kpi-val{font-size:clamp(26px,4vw,40px);font-weight:800;line-height:1;margin:6px 0 4px}
+.kpi-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.kpi-sub{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+
+/* ── CHART CONTAINERS ── */
+.chart-wrap{position:relative;width:100%;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.chart-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+.chart-canvas-wrap{position:relative}
+
+/* ── EVIDENCE CARD ── */
+.ev-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;margin-top:20px}
+.ev-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.ev-impact{
+  background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.25);
+  border-radius:8px;padding:10px 16px;text-align:center;flex-shrink:0;
+}
+.ev-impact-val{font-size:22px;font-weight:800;color:var(--emerald)}
+.ev-impact-label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.ev-body{font-size:13px;color:#94a3b8;line-height:1.7;margin-top:14px}
+.ev-note{margin-top:14px;padding:10px 14px;border-left:2px solid var(--emerald);background:rgba(16,185,129,0.04);border-radius:0 8px 8px 0;font-size:12px;color:#94a3b8;font-style:italic}
+
+/* ── STRENGTH BAR ── */
+.str-wrap{margin-top:16px}
+.str-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.str-track{height:6px;background:rgba(30,58,82,0.8);border-radius:4px;overflow:hidden}
+.str-fill{height:100%;background:linear-gradient(90deg,var(--emerald2),var(--emerald));border-radius:4px;width:0;transition:width 1s ease}
+
+/* ── TWO-COL ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+
+/* ── WATERFALL TABLE ── */
+.wf-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(30,58,82,0.5)}
+.wf-row:last-child{border-bottom:none}
+.wf-name{font-size:13px;flex:1;color:#cbd5e1}
+.wf-bar-wrap{width:140px;height:8px;background:rgba(30,58,82,0.8);border-radius:4px;overflow:hidden;flex-shrink:0}
+.wf-bar{height:100%;border-radius:4px}
+.wf-val{font-size:14px;font-weight:700;min-width:52px;text-align:right;flex-shrink:0}
+
+/* ── REC CARDS ── */
+.rec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px}
+.rec-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.rec-num{font-size:10px;letter-spacing:2px;color:var(--emerald);text-transform:uppercase}
+.rec-title{font-size:15px;font-weight:700;line-height:1.3}
+.rec-body{font-size:12px;color:var(--muted);line-height:1.6;flex:1}
+.rec-roi{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.15);border-radius:6px;padding:8px 12px;font-size:12px}
+.rec-roi span{color:var(--emerald);font-weight:700}
+
+/* ── BENCHMARK TABLE ── */
+.bench-row{display:grid;grid-template-columns:1fr 80px 80px 80px;gap:8px;padding:10px 12px;border-radius:8px;align-items:center;font-size:13px}
+.bench-row.head{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);background:transparent}
+.bench-row:not(.head):nth-child(even){background:rgba(30,58,82,0.3)}
+.bench-bar-cell{display:flex;align-items:center;gap:6px}
+.bench-bar-bg{flex:1;height:6px;background:rgba(30,58,82,0.8);border-radius:3px;overflow:hidden}
+.bench-bar-fill{height:100%;border-radius:3px}
+
+/* ── PULSE DOT ── */
+.pulse-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--emerald);margin-right:6px;animation:blink 1.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* ── RAC SCORE ── */
+.rac-score{font-size:clamp(70px,12vw,120px);font-weight:900;line-height:1;letter-spacing:-4px}
+.rac-sub{font-size:13px;color:var(--muted);margin-top:6px;letter-spacing:1px}
+
+/* ══════════════════════════════════
+   ANIMATION SYSTEM
+══════════════════════════════════ */
+
+/* ── SCREEN TRANSITIONS ── */
+.screen { opacity:0; transform:translateY(24px); }
+.screen.active { opacity:1; transform:translateY(0); display:flex; }
+#s1 { opacity:1; transform:none; }
+.screen.exit-left  { animation: exitLeft  0.45s cubic-bezier(.4,0,.2,1) forwards; }
+.screen.exit-right { animation: exitRight 0.45s cubic-bezier(.4,0,.2,1) forwards; }
+.screen.enter-right{ animation: enterRight 0.45s cubic-bezier(.4,0,.2,1) forwards; }
+.screen.enter-left { animation: enterLeft  0.45s cubic-bezier(.4,0,.2,1) forwards; }
+
+@keyframes exitLeft   { from{opacity:1;transform:translateY(0)}    to{opacity:0;transform:translateX(-60px) scale(0.97)} }
+@keyframes exitRight  { from{opacity:1;transform:translateY(0)}    to{opacity:0;transform:translateX(60px)  scale(0.97)} }
+@keyframes enterRight { from{opacity:0;transform:translateX(60px)  scale(0.97)} to{opacity:1;transform:translateX(0) scale(1)} }
+@keyframes enterLeft  { from{opacity:0;transform:translateX(-60px) scale(0.97)} to{opacity:1;transform:translateX(0) scale(1)} }
+
+/* ── CONTENT ENTRANCE ── */
+.screen.active .anim-up   { animation: animUp   0.6s cubic-bezier(.4,0,.2,1) both; }
+.screen.active .anim-fade { animation: animFade 0.7s ease both; }
+.screen.active .anim-left { animation: animLeft 0.6s cubic-bezier(.4,0,.2,1) both; }
+
+.anim-d1 { animation-delay:0.08s !important; }
+.anim-d2 { animation-delay:0.18s !important; }
+.anim-d3 { animation-delay:0.28s !important; }
+.anim-d4 { animation-delay:0.38s !important; }
+.anim-d5 { animation-delay:0.48s !important; }
+.anim-d6 { animation-delay:0.58s !important; }
+
+@keyframes animUp   { from{opacity:0;transform:translateY(32px)} to{opacity:1;transform:translateY(0)} }
+@keyframes animFade { from{opacity:0}                             to{opacity:1} }
+@keyframes animLeft { from{opacity:0;transform:translateX(-28px)} to{opacity:1;transform:translateX(0)} }
+
+/* ── PARTICLE CANVAS ── */
+#particle-canvas {
+  position:fixed; inset:0; z-index:1;
+  pointer-events:none; opacity:0.55;
+}
+
+/* ── FLOATING SVG VECTORS ── */
+.vec-layer {
+  position:absolute; inset:0; z-index:1;
+  pointer-events:none; overflow:hidden;
+}
+.vec-item {
+  position:absolute;
+  opacity:0;
+  animation: vecFloat linear infinite;
+}
+@keyframes vecFloat {
+  0%   { opacity:0; transform:translateY(110%) rotate(0deg); }
+  8%   { opacity:1; }
+  92%  { opacity:1; }
+  100% { opacity:0; transform:translateY(-110%) rotate(360deg); }
+}
+
+/* ── HERO NUMBER PULSE ── */
+.hero-num {
+  animation: heroScale 3.5s ease-in-out infinite;
+}
+@keyframes heroScale {
+  0%,100% { text-shadow: 0 0 0px rgba(16,185,129,0); }
+  50%     { text-shadow: 0 0 40px rgba(16,185,129,0.40), 0 0 80px rgba(16,185,129,0.15); }
+}
+
+/* ── SCAN LINE ── */
+.scan-line {
+  position:absolute; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(16,185,129,0.4), transparent);
+  animation: scanDown 4s linear infinite;
+  z-index:2; pointer-events:none;
+}
+@keyframes scanDown { from{top:0%} to{top:100%} }
+
+/* ── KPI CARD HOVER ── */
+.kpi {
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.kpi:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(16,185,129,0.35);
+  box-shadow: 0 12px 40px rgba(4,17,31,0.6), 0 0 20px rgba(16,185,129,0.08);
+}
+
+/* ── CARD HOVER ── */
+.card, .ev-card, .rec-card {
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.card:hover, .ev-card:hover, .rec-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(16,185,129,0.28);
+  box-shadow: 0 16px 48px rgba(4,17,31,0.5);
+}
+
+/* ── BACKGROUND GRADIENT DRIFT ── */
+.bg-drift {
+  position:absolute; inset:-20%; z-index:0;
+  background: radial-gradient(ellipse 60% 50% at 30% 40%, rgba(5,150,105,0.05) 0%, transparent 70%),
+              radial-gradient(ellipse 40% 60% at 75% 65%, rgba(16,185,129,0.03) 0%, transparent 60%);
+  animation: bgDrift 12s ease-in-out infinite alternate;
+}
+@keyframes bgDrift {
+  from { transform: translate(0,0) scale(1); }
+  to   { transform: translate(3%, 2%) scale(1.06); }
+}
+
+/* ── EMERALD ALERT PULSE (prime suspect) ── */
+.emerald-glow {
+  animation: emeraldGlow 2s ease-in-out infinite;
+}
+@keyframes emeraldGlow {
+  0%,100% { text-shadow: 0 0 0 rgba(16,185,129,0); }
+  50%     { text-shadow: 0 0 50px rgba(16,185,129,0.55), 0 0 100px rgba(16,185,129,0.2); }
+}
+
+/* ── WATERFALL BAR ENTRANCE ── */
+.wf-bar { width:0 !important; transition: width 1s cubic-bezier(.4,0,.2,1); }
+.wf-bar.animated { width: var(--tw) !important; }
+
+/* ── CREDITS ENTRANCE ── */
+#s11 .screen-content > div > * {
+  opacity:0;
+  animation: creditsIn 0.7s cubic-bezier(.4,0,.2,1) forwards;
+}
+#s11.active .screen-content > div > *:nth-child(1) { animation-delay:0.1s; }
+#s11.active .screen-content > div > *:nth-child(2) { animation-delay:0.3s; }
+#s11.active .screen-content > div > *:nth-child(3) { animation-delay:0.5s; }
+#s11.active .screen-content > div > *:nth-child(4) { animation-delay:0.65s; }
+#s11.active .screen-content > div > *:nth-child(5) { animation-delay:0.8s; }
+#s11.active .screen-content > div > *:nth-child(6) { animation-delay:0.95s; }
+#s11.active .screen-content > div > *:nth-child(7) { animation-delay:1.1s; }
+#s11.active .screen-content > div > *:nth-child(8) { animation-delay:1.2s; }
+@keyframes creditsIn {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── MOBILE ── */
+@media(max-width:680px){
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .two-col{grid-template-columns:1fr}
+  .rec-grid{grid-template-columns:1fr}
+  .bench-row{grid-template-columns:1fr 60px 60px;font-size:11px}
+  .bench-row .bench-col-hide{display:none}
+  .screen{padding:64px 5% 88px}
+}
+@media(max-width:400px){
+  .kpi-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- PARTICLE CANVAS -->
+<canvas id="particle-canvas"></canvas>
+
+<!-- HUD -->
+<div id="hud-left">Episode 04 &nbsp;·&nbsp; <span id="hud-screen">1 / 10</span></div>
+<div id="hud-right">Metal Recovery &nbsp;<span id="hud-recovery">—</span></div>
+
+<!-- ════════════════════════════════
+     S1 — HERO
+════════════════════════════════ -->
+<div class="screen active" id="s1"
+  style="background-image:url('https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1400&q=80')">
+  <div class="screen-overlay"></div>
+  <div class="scan-line"></div>
+  <div class="vec-layer" id="vec1"></div>
+  <div class="screen-content">
+    <div class="eyebrow anim-up anim-d1">Case File #004 &nbsp;·&nbsp; Recovery Intelligence</div>
+    <h1 class="anim-up anim-d2">Richer Ore Than Ever.<br><span class="emerald">Less Metal in the Bank.</span></h1>
+    <p class="anim-up anim-d3" style="font-size:clamp(14px,2vw,17px);color:#94a3b8;max-width:560px;line-height:1.8;margin-bottom:28px">
+      A 3.6 MTPA copper concentrator. Head grade is climbing. Throughput is at record highs. And yet — the metal recovered per tonne keeps slipping. Tonnes of copper leave every day, dissolved into the tailings, where no one is counting.
+    </p>
+    <div class="anim-up anim-d4" style="display:flex;gap:28px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:clamp(28px,5vw,52px);font-weight:900;color:var(--emerald)" class="hero-num">₹142 Cr</div>
+        <div style="font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-top:4px">Annual Recovery Loss</div>
+      </div>
+      <div>
+        <div style="font-size:clamp(28px,5vw,52px);font-weight:900;color:var(--orange)" class="hero-num">84.5%</div>
+        <div style="font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-top:4px">Actual Metal Recovery</div>
+      </div>
+      <div>
+        <div style="font-size:clamp(28px,5vw,52px);font-weight:900;color:var(--white)" class="hero-num">7.0 pts</div>
+        <div style="font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-top:4px">Gap from Best-in-Class</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     S2 — EXECUTIVE BRIEF
+════════════════════════════════ -->
+<div class="screen" id="s2"
+  style="background-image:url('https://images.unsplash.com/photo-1518770660439-4636190af475?w=1400&q=80')">
+  <div class="screen-overlay"></div>
+  <div class="scan-line"></div>
+  <div class="vec-layer" id="vec2"></div>
+  <div class="screen-content">
+    <div class="eyebrow anim-up anim-d1">Executive Brief</div>
+    <h2 class="anim-up anim-d2">The Metallurgical Balance — What the Concentrate Tells Us</h2>
+    <p class="anim-fade anim-d2" style="font-size:13px;color:var(--muted);max-width:560px;margin-bottom:4px">3.6 MTPA copper concentrator · base-metal belt, India · FY 2023–24 actuals</p>
+    <div class="kpi-grid">
+      <div class="kpi anim-up anim-d3">
+        <div class="kpi-label">Contained Metal Milled</div>
+        <div class="kpi-val emerald">34,600 T</div>
+        <div class="kpi-sub">Copper in feed / year · 0.96% head grade</div>
+      </div>
+      <div class="kpi anim-up anim-d4">
+        <div class="kpi-label">Metal Recovery</div>
+        <div class="kpi-val" style="color:var(--white)">84.5%</div>
+        <div class="kpi-sub">vs 91.5% best-in-class · 7.0 pt gap</div>
+      </div>
+      <div class="kpi anim-up anim-d5">
+        <div class="kpi-label">Avoidable Value Lost</div>
+        <div class="kpi-val" style="color:var(--orange)">₹420/T</div>
+        <div class="kpi-sub">₹142 Cr annually · walks out with tails</div>
+      </div>
+      <div class="kpi anim-up anim-d3">
+        <div class="kpi-label">Metal Lost to Tailings</div>
+        <div class="kpi-val" style="color:var(--orange)">5,360 T</div>
+        <div class="kpi-sub">Copper / year · 0.18% avg tails grade</div>
+      </div>
+      <div class="kpi anim-up anim-d4">
+        <div class="kpi-label">Tailings Re-Assay Rate</div>
+        <div class="kpi-val" style="color:var(--white)">1 / shift</div>
+        <div class="kpi-sub">Manual grab sample · 8-hr feedback lag</div>
+      </div>
+      <div class="kpi anim-up anim-d5">
+        <div class="kpi-label">Recoverable Metal</div>
+        <div class="kpi-val" style="color:var(--orange)">1,730 T</div>
+        <div class="kpi-sub">At +5 pt achievable recovery target</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     S3 — METAL FLOW MAP
+════════════════════════════════ -->
+<div class="screen" id="s3">
+  <div class="bg-drift"></div>
+  <div class="vec-layer" id="vec3"></div>
+  <div class="screen-content">
+    <div class="eyebrow anim-up anim-d1">Metal Flow Map</div>
+    <h2 class="anim-up anim-d2">Where Does the Metal Go?</h2>
+    <div class="two-col">
+      <div class="chart-wrap">
+        <div class="chart-title">Annual Copper Balance — 34,600 T Contained</div>
+        <div class="chart-canvas-wrap" style="max-height:300px">
+          <canvas id="donutChart"></canvas>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;justify-content:center">
+        <div class="card" style="border-color:rgba(16,185,129,0.2)">
+          <div style="font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Recovered to Concentrate</div>
+          <div style="font-size:22px;font-weight:800;color:var(--emerald)">29,200 T <span style="font-size:13px;font-weight:400;color:var(--muted)">84.5%</span></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Banked metal · the only tonnes that get paid</div>
+        </div>
+        <div class="card" style="border-color:rgba(249,115,22,0.2)">
+          <div style="font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Lost to Tailings</div>
+          <div style="font-size:22px;font-weight:800;color:var(--orange)">5,360 T <span style="font-size:13px;font-weight:400;color:var(--muted)">15.5%</span></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Coarse-locked · froth loss · slimes · middlings</div>
+        </div>
+        <div class="card">
+          <div style="font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Recoverable Slice</div>
+          <div style="font-size:22px;font-weight:800">1,730 T <span style="font-size:13px;font-weight:400;color:var(--muted)">5.0%</span></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Closeable with grind, froth &amp; assay control</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     S4 — EVIDENCE 01: GRIND / LIBERATION
+════════════════════════════════ -->
+<div class="screen" id="s4"
+  style="background-image:url('https://images.unsplash.com/photo-1565514158740-064f34bd6cfd?w=1400&q=80')">
+  <div class="screen-overlay"></div>
+  <div class="scan-line"></div>
+  <div class="vec-layer" id="vec4"></div>
+  <div class="screen-content">
+    <div class="eyebrow anim-up anim-d1">Evidence File 01</div>
+    <h2 class="anim-up anim-d2">Grade Went Up. Recovery Went Down.</h2>
+    <div class="ev-card anim-up anim-d3">
+      <div class="ev-header">
+        <div>
+          <div style="font-size:15px;color:#e2e8f0;line-height:1.6;max-width:500px">
+            As mill throughput was pushed, grind size <strong style="color:#fff">drifted from 150 µm to 175 µm (P80)</strong>. Coarser particles leave copper locked inside gangue — it never floats, never reports to concentrate. Recovery fell <strong style="color:var(--emerald)">3.5 points</strong> even as head grade rose.
+          </div>
+        </div>
+        <div class="ev-impact">
+          <div class="ev-impact-val">+₹120/T</div>
+          <div class="ev-impact-label">Cost Impact</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="margin-top:16px;padding:16px">
+        <div class="chart-title">Grind Size (P80) vs Metal Recovery — Monthly (FY24)</div>
+        <div class="chart-canvas-wrap" style="max-height:220px">
+          <canvas id="liberationChart"></canvas>
+        </div>
+      </div>
+      <div class="ev-note">
+        Investigator's note: The mill is rewarded for tonnes-per-hour. The flotation circuit is judged on recovery. No one owns the trade-off between them. When the grind coarsens to chase throughput, the lost metal lands three departments away — in a tailings line no production report tracks.
+      </div>
+      <div class="str-wrap">
+        <div class="str-label">Evidence Strength</div>
+        <div class="str-track"><div class="str-fill" data-w="86%"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     S5 — EVIDENCE 02: THE TAILINGS BLIND SPOT
+════════════════════════════════ -->
+<div class="screen" id="s5"
+  style="background-image:url('https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=1400&q=80')">
+  <div class="screen-overlay"></div>
+  <div class="scan-line"></div>
+  <div class="vec-layer" id="vec5"></div>
+  <div class="screen-content">
+    <div class="eyebrow anim-up anim-d1">Evidence File 02</div>
+    <h2 class="anim-up anim-d2">The Tailings Nobody Reads</h2>
+    <div class="ev-card anim-up anim-d3">
+      <div class="ev-header">
+        <div>
+          <div style="font-size:15px;color:#e2e8f0;line-height:1.6;max-width:500px">
+            Tailings copper grade has crept from <strong style="color:#fff">0.13% to 0.21%</strong> — yet it is sampled by hand just once a shift, with results back 8 hours later. By the time anyone sees a bad assay, <strong style="color:var(--emerald)">10,000 tonnes of ore</strong> have already passed through at that loss.
+          </div>
+        </div>
+        <div class="ev-impact">
+          <div class="ev-impact-val">+₹75/T</div>
+          <div class="ev-impact-label">Cost Impact</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="margin-top:16px;padding:16px">
+        <div class="chart-title">Tailings Copper Grade by Month — vs Target Ceiling</div>
+        <div class="chart-canvas-wrap" style="max-height:220px">
+          <canvas id="tailsChart"></canvas>
+        </div>
+      </div>
+      <div class="ev-note">
+        Investigator's note: There is no on-stream analyser on the final tailings. Recovery is "known" only at month-end, after metallurgical accounting reconciles concentrate shipments. The plant runs blind for 30 days, then explains the variance after the metal is already gone.
+      </div>
+      <div class="str-wrap">
+        <div class="str-label">Evidence Strength</div>
+        <div class="str-track"><div class="str-fill" data-w="79%"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     S6 — DISCOVERY: RAC SCORE
+════════════════════════════════ -->
+<div class="screen" id="s6">
+  <div class="bg-drift"></div>
+  <div class="vec-layer" id="vec6"></div>
+  <div class="screen-content">
+    <div class="eyebrow anim-up anim-d1">Critical Discovery</div>
+    <h2 class="anim-up anim-d2">Recovery Accounting Confidence™</h2>
+    <div class="two-col anim-up anim-d3" style="align-items:start">
+      <div>
+        <div class="card" style="text-align:center;padding:32px 20px;border-color:rgba(16,185,129,0.25)">
+          <div style="font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:12px">Mine Alpha Score</div>
+          <div class="rac-score" style="color:var(--orange)">39</div>
+          <div style="font-size:14px;color:var(--muted);margin-top:2px">/ 100</div>
+          <div class="rac-sub">HIGH RISK · Recovery measured too late to act</div>
+          <div style="margin-top:20px">
+            <canvas id="gaugeChart" height="120"></canvas>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+          <div class="card" style="padding:14px;text-align:center">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Industry Avg</div>
+            <div style="font-size:22px;font-weight:800;color:var(--white);margin-top:4px">56</div>
+          </div>
+          <div class="card" style="padding:14px;text-align:center;border-color:rgba(16,185,129,0.2)">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Best in Class</div>
+            <div style="font-size:22px;font-weight:800;color:var(--emerald);margin-top:4px">90</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;letter-spacing:1px;text-transform:uppercase">Score Breakdown</div>
+        <div class="chart-wrap" style="padding:16px">
+          <canvas id="racRadar" height="260"></canvas>
+        </div>
+        <div class="ev-note" style="margin-top:0">
+          A score of 39 means the plant cannot see its recovery in real time. It learns the number a month later — when the only lever left is to explain the loss, not prevent it. Every shift is a bet placed without seeing the cards.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     S7 — PRIME SUSPECT: GRIND–FLOTATION CONTROL GAP
+════════════════════════════════ -->
+<div class="screen" id="s7"
+  style="background-image:url('https://images.unsplash.com/photo-1495571758719-6ec1e876d6ae?w=1400&q=80')">
+  <div class="screen-overlay" style="background:linear-gradient(135deg,rgba(4,17,31,0.95) 0%,rgba(4,17,31,0.80) 100%)"></div>
+  <div class="scan-line"></div>
+  <div class="vec-layer" id="vec7"></div>
+  <div class="screen-content">
+    <div class="eyebrow anim-up anim-d1" style="color:var(--orange)">Prime Suspect</div>
+    <div class="anim-up anim-d2" style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:8px">
+      <div style="font-size:clamp(60px,10vw,110px);font-weight:900;line-height:1;color:var(--emerald)" class="emerald-glow">₹320/T</div>
+      <div style="padding-bottom:10px">
+        <div style="font-size:12px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase">The Grind–Flotation Control Gap</div>
+        <div style="font-size:14px;color:#94a3b8;margin-top:4px">Coarse grind · manual froth · bypassed regrind · hand-dosed reagents</div>
+      </div>
+    </div>
+    <div class="anim-up anim-d3" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:640px">
+      <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:12px;padding:16px">
+        <div style="font-size:20px;font-weight:800;color:var(--emerald)">+₹120/T</div>
+        <div style="font-size:13px;color:#94a3b8;margin-top:4px">Coarse grind — copper locked in gangue</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">P80 175 µm vs 150 µm target · worn mill liners</div>
+      </div>
+      <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:12px;padding:16px">
+        <div style="font-size:20px;font-weight:800;color:var(--emerald)">+₹95/T</div>
+        <div style="font-size:13px;color:#94a3b8;margin-top:4px">Froth &amp; air control instability</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">No froth cameras · manual air-rate setpoints</div>
+      </div>
+      <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:12px;padding:16px">
+        <div style="font-size:20px;font-weight:800;color:var(--emerald)">+₹60/T</div>
+        <div style="font-size:13px;color:#94a3b8;margin-top:4px">Regrind / middlings loss</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Cyclone bypass · liberated middlings to tail</div>
+      </div>
+      <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:12px;padding:16px">
+        <div style="font-size:20px;font-weight:800;color:var(--emerald)">+₹45/T</div>
+        <div style="font-size:13px;color:#94a3b8;margin-top:4px">Reagent dosing variability</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Manual collector/frother dosing · no online control</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;font-size:12px;color:var(--muted);letter-spacing:1px">
+      <span class="pulse-dot"></span>76% of total recovery loss · single biggest controllable category
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     S8 — FINANCIAL CONSEQUENCE
+════════════════════════════════ -->
+<div class="screen" id="s8">
+  <div class="bg-drift"></div>
+  <div class="vec-layer" id="vec8"></div>
+  <div class="screen-content">
+    <div class="eyebrow anim-up anim-d1">Financial Consequence</div>
+    <h2 class="anim-up anim-d2">₹420/T — Every Rupee of Lost Metal Traced</h2>
+    <div class="two-col anim-up anim-d3" style="align-items:start">
+      <div>
+        <div class="wf-row" style="border-bottom:2px solid var(--border);padding-bottom:14px;margin-bottom:4px">
+          <span class="wf-name" style="color:#e2e8f0;font-weight:600">Recovery Loss Pathway</span>
+          <span style="font-size:10px;color:var(--muted);min-width:52px;text-align:right">₹/Tonne</span>
+        </div>
+        <div class="wf-row">
+          <span class="wf-name">Grind size / liberation loss</span>
+          <div class="wf-bar-wrap"><div class="wf-bar" data-tw="100%" style="width:100%;background:var(--emerald)"></div></div>
+          <span class="wf-val emerald">₹120</span>
+        </div>
+        <div class="wf-row">
+          <span class="wf-name">Froth &amp; air control instability</span>
+          <div class="wf-bar-wrap"><div class="wf-bar" data-tw="79%" style="width:79%;background:var(--emerald)"></div></div>
+          <span class="wf-val emerald">₹95</span>
+        </div>
+        <div class="wf-row">
+          <span class="wf-name">No tailings recovery feedback</span>
+          <div class="wf-bar-wrap"><div class="wf-bar" data-tw="63%" style="width:63%;background:var(--emerald)"></div></div>
+          <span class="wf-val emerald">₹75</span>
+        </div>
+        <div class="wf-row">
+          <span class="wf-name">Regrind / middlings loss</span>
+          <div class="wf-bar-wrap"><div class="wf-bar" data-tw="50%" style="width:50%;background:var(--orange)"></div></div>
+          <span class="wf-val orange">₹60</span>
+        </div>
+        <div class="wf-row">
+          <span class="wf-name">Reagent dosing variability</span>
+          <div class="wf-bar-wrap"><div class="wf-bar" data-tw="38%" style="width:38%;background:var(--orange)"></div></div>
+          <span class="wf-val orange">₹45</span>
+        </div>
+        <div class="wf-row">
+          <span class="wf-name">Unavoidable mineralogical floor</span>
+          <div class="wf-bar-wrap"><div class="wf-bar" data-tw="21%" style="width:21%;background:var(--slate)"></div></div>
+          <span class="wf-val muted">₹25</span>
+        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px;color:var(--muted)">Total ₹/T</span>
+          <span style="font-size:20px;font-weight:800;color:var(--emerald)">₹420/T ✓</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="chart-wrap">
+          <div class="chart-title">Annual Cost at 3.6 MTPA</div>
+          <div class="chart-canvas-wrap" style="max-height:230px">
+            <canvas id="annualBar"></canvas>
+          </div>
+        </div>
+        <div class="card" style="border-color:rgba(16,185,129,0.25);padding:18px">
+          <div style="font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Avoidable vs Unavoidable</div>
+          <div style="display:flex;gap:20px">
+            <div>
+              <div style="font-size:24px;font-weight:800;color:var(--emerald)">₹395/T</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Avoidable with intervention</div>
+            </div>
+            <div>
+              <div style="font-size:24px;font-weight:800;color:var(--muted)">₹25/T</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px">Unavoidable mineralogy</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;font-size:13px;color:var(--emerald)">
+            Recoverable annual value: <strong>₹142 Crore</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     S9 — BENCHMARK + RECOMMENDATIONS
+════════════════════════════════ -->
+<div class="screen" id="s9">
+  <div class="bg-drift"></div>
+  <div class="vec-layer" id="vec9"></div>
+  <div class="screen-content">
+    <div class="eyebrow anim-up anim-d1">Industry Benchmark + Path Forward</div>
+    <h2 class="anim-up anim-d2">How Mine Alpha Compares — And What to Fix First</h2>
+    <p class="anim-fade anim-d2" style="font-size:13px;color:var(--muted);margin-bottom:20px">Copper concentrators · India · FY24 data · masked identities</p>
+    <div class="two-col anim-up anim-d3" style="align-items:start">
+      <div>
+        <div class="bench-row head">
+          <span>Plant</span><span>Rec %</span><span>Tails %</span><span class="bench-col-hide">RAC</span>
+        </div>
+        <div class="bench-row">
+          <span><span class="pulse-dot"></span>Mine Alpha</span>
+          <span style="color:var(--orange);font-weight:700">84.5</span>
+          <span style="color:var(--orange);font-weight:700">0.18</span>
+          <span class="bench-col-hide" style="color:var(--orange);font-weight:700">39</span>
+        </div>
+        <div class="bench-row">
+          <span>Mine Beta</span>
+          <span style="color:#94a3b8">87.2</span>
+          <span style="color:#94a3b8">0.15</span>
+          <span class="bench-col-hide" style="color:#94a3b8">54</span>
+        </div>
+        <div class="bench-row">
+          <span>Mine Gamma</span>
+          <span style="color:#94a3b8">89.0</span>
+          <span style="color:#94a3b8">0.13</span>
+          <span class="bench-col-hide" style="color:#94a3b8">67</span>
+        </div>
+        <div class="bench-row">
+          <span>Mine Delta</span>
+          <span style="color:#94a3b8">90.3</span>
+          <span style="color:#94a3b8">0.11</span>
+          <span class="bench-col-hide" style="color:#94a3b8">74</span>
+        </div>
+        <div class="bench-row">
+          <span style="color:var(--emerald);font-weight:600">Best in Class</span>
+          <span style="color:var(--emerald);font-weight:700">91.5</span>
+          <span style="color:var(--emerald);font-weight:700">0.09</span>
+          <span class="bench-col-hide" style="color:var(--emerald);font-weight:700">90</span>
+        </div>
+        <div style="margin-top:16px">
+          <div class="chart-wrap" style="padding:16px">
+            <div class="chart-title">Metal Recovery — Plant Comparison (%)</div>
+            <div class="chart-canvas-wrap" style="max-height:160px">
+              <canvas id="benchBar"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Top 3 Interventions</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="card" style="border-color:rgba(16,185,129,0.2);padding:16px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+              <div>
+                <div style="font-size:10px;letter-spacing:1.5px;color:var(--emerald);text-transform:uppercase;margin-bottom:4px">01 — Highest Priority</div>
+                <div style="font-size:14px;font-weight:700;margin-bottom:4px">Online Tailings Assay + Recovery Dashboard</div>
+                <div style="font-size:12px;color:var(--muted);line-height:1.5">On-stream XRF analyser on final tails. Real-time recovery on every control screen — close the 30-day feedback loop to minutes.</div>
+              </div>
+              <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:8px 12px;text-align:center;flex-shrink:0">
+                <div style="font-size:16px;font-weight:800;color:var(--emerald)">₹48 Cr</div>
+                <div style="font-size:9px;color:var(--muted);margin-top:2px">SAVING / YEAR</div>
+              </div>
+            </div>
+            <div style="margin-top:10px;font-size:11px;color:var(--muted)">Investment: ₹4.5 Cr &nbsp;·&nbsp; Payback: <span style="color:var(--emerald)">1.1 months</span></div>
+          </div>
+          <div class="card" style="border-color:rgba(16,185,129,0.15);padding:16px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+              <div>
+                <div style="font-size:10px;letter-spacing:1.5px;color:var(--emerald);text-transform:uppercase;margin-bottom:4px">02 — Liberation Recovery</div>
+                <div style="font-size:14px;font-weight:700;margin-bottom:4px">Grind Optimisation + Regrind Circuit</div>
+                <div style="font-size:12px;color:var(--muted);line-height:1.5">Particle-size control, cyclone tuning, liner-wear management and a regrind mill to liberate locked middlings before they reach the tail.</div>
+              </div>
+              <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:8px 12px;text-align:center;flex-shrink:0">
+                <div style="font-size:16px;font-weight:800;color:var(--emerald)">₹54 Cr</div>
+                <div style="font-size:9px;color:var(--muted);margin-top:2px">SAVING / YEAR</div>
+              </div>
+            </div>
+            <div style="margin-top:10px;font-size:11px;color:var(--muted)">Investment: ₹12 Cr &nbsp;·&nbsp; Payback: <span style="color:var(--emerald)">2.7 months</span></div>
+          </div>
+          <div class="card" style="border-color:rgba(16,185,129,0.12);padding:16px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+              <div>
+                <div style="font-size:10px;letter-spacing:1.5px;color:var(--emerald);text-transform:uppercase;margin-bottom:4px">03 — Flotation Automation</div>
+                <div style="font-size:14px;font-weight:700;margin-bottom:4px">Froth Cameras + Air &amp; Reagent Control</div>
+                <div style="font-size:12px;color:var(--muted);line-height:1.5">Machine-vision froth monitoring with automated air-rate and reagent dosing. Stabilise the circuit shift-to-shift, operator-to-operator.</div>
+              </div>
+              <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:8px 12px;text-align:center;flex-shrink:0">
+                <div style="font-size:16px;font-weight:800;color:var(--emerald)">₹40 Cr</div>
+                <div style="font-size:9px;color:var(--muted);margin-top:2px">SAVING / YEAR</div>
+              </div>
+            </div>
+            <div style="margin-top:10px;font-size:11px;color:var(--muted)">Investment: ₹6 Cr &nbsp;·&nbsp; Payback: <span style="color:var(--emerald)">1.8 months</span></div>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding:14px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.18);border-radius:10px;font-size:13px">
+          Combined ROI: <strong style="color:var(--emerald)">₹142 Cr/year</strong> &nbsp;·&nbsp; Total investment: <strong style="color:var(--white)">₹22.5 Cr</strong> &nbsp;·&nbsp; Payback: <strong style="color:var(--emerald)">1.9 months</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     S10 — CLOSING PRINCIPLE
+════════════════════════════════ -->
+<div class="screen" id="s10"
+  style="background-image:url('https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=80')">
+  <div class="screen-overlay" style="background:linear-gradient(135deg,rgba(4,17,31,0.96) 0%,rgba(4,17,31,0.82) 100%)"></div>
+  <div class="scan-line"></div>
+  <div class="vec-layer" id="vec10"></div>
+  <div class="screen-content" style="text-align:center;align-items:center;display:flex;flex-direction:column">
+    <div class="eyebrow anim-up anim-d1" style="justify-content:center">Case Closed · The Verdict</div>
+    <div class="anim-up anim-d2" style="font-size:clamp(16px,2.5vw,22px);color:var(--muted);max-width:680px;line-height:1.9;margin-bottom:28px">
+      ₹420 of every tonne milled carries metal value that walks out with the tailings — unassayed in real time, unseen on any screen, and never recovered.
+    </div>
+    <div class="anim-up anim-d3" style="max-width:720px">
+      <div style="font-size:clamp(18px,3vw,28px);font-weight:700;color:var(--white);line-height:1.6;margin-bottom:10px">
+        Great mines don't just dig richer ore.
+      </div>
+      <div style="font-size:clamp(18px,3vw,28px);font-weight:700;color:var(--emerald);line-height:1.6">
+        Great mines build recovery intelligence to keep the metal they already paid to dig.
+      </div>
+    </div>
+    <div class="anim-up anim-d4" style="margin-top:36px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center">
+      <a href="https://www.linkedin.com/in/shubhambala/" target="_blank" class="nav-btn" style="border-color:rgba(16,185,129,0.35)">
+        Know the Curator ↗
+      </a>
+      <a href="episode5.html" class="nav-btn primary">
+        Episode 05 — The Fleet Productivity Puzzle →
+      </a>
+    </div>
+    <div style="margin-top:28px" class="anim-fade anim-d5">
+      <div style="font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px">Also Investigate</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+        <a href="index.html" style="font-size:12px;color:var(--muted);text-decoration:none;padding:6px 14px;border:1px solid rgba(100,116,139,0.2);border-radius:99px;transition:all 0.2s" onmouseover="this.style.color='#f1f5f9'" onmouseout="this.style.color='#64748b'">Ep01 — Hidden Cost Puzzle</a>
+        <a href="episode2.html" style="font-size:12px;color:var(--muted);text-decoration:none;padding:6px 14px;border:1px solid rgba(100,116,139,0.2);border-radius:99px;transition:all 0.2s" onmouseover="this.style.color='#f1f5f9'" onmouseout="this.style.color='#64748b'">Ep02 — Water Visibility Puzzle</a>
+        <a href="episode3.html" style="font-size:12px;color:var(--muted);text-decoration:none;padding:6px 14px;border:1px solid rgba(100,116,139,0.2);border-radius:99px;transition:all 0.2s" onmouseover="this.style.color='#f1f5f9'" onmouseout="this.style.color='#64748b'">Ep03 — Energy Visibility Puzzle</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     S11 — CREDITS
+════════════════════════════════ -->
+<div class="screen" id="s11">
+  <div class="bg-drift"></div>
+  <div class="vec-layer" id="vec11"></div>
+  <div class="screen-content">
+    <div style="max-width:580px;margin:0 auto;text-align:center">
+      <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--emerald);margin-bottom:24px">Mining Intelligence Lab™</div>
+      <img src="profile pic.png" alt="Shubham B" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--emerald2);margin:0 auto 20px;display:block">
+      <h2 style="font-size:clamp(22px,3.5vw,32px);font-weight:800;margin-bottom:6px">Shubham B</h2>
+      <div style="font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:20px">
+        Mining &amp; Cement Industry · Strategy &amp; Digital Intelligence<br>
+        Operational Excellence · Mine-to-Market Strategy<br>
+        AI &amp; Data Transformation · Cost Intelligence
+      </div>
+      <p style="font-size:13px;color:#94a3b8;line-height:1.8;max-width:480px;margin:0 auto 28px">
+        Mining Intelligence Lab transforms operational data into executive-level digital investigations — surfacing the value that no report has ever named, and the decisions that no dashboard has ever enabled.
+      </p>
+      <a href="https://www.linkedin.com/in/shubhambala/" target="_blank"
+         style="display:inline-flex;align-items:center;gap:8px;background:var(--emerald2);color:#fff;padding:12px 28px;border-radius:999px;font-size:13px;font-weight:700;text-decoration:none;letter-spacing:0.5px;transition:all 0.2s"
+         onmouseover="this.style.background='#10b981';this.style.color='#04111f'"
+         onmouseout="this.style.background='#059669';this.style.color='#fff'">
+        Connect on LinkedIn ↗
+      </a>
+      <div style="margin-top:32px;padding-top:24px;border-top:1px solid rgba(30,58,82,0.6);font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">
+        Mining Intelligence Lab™ · Episode 04 of 07 · 2024
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <a href="index.html" style="font-size:11px;color:var(--muted);text-decoration:none;padding:5px 12px;border:1px solid rgba(100,116,139,0.2);border-radius:99px">← Ep01</a>
+        <a href="episode2.html" style="font-size:11px;color:var(--muted);text-decoration:none;padding:5px 12px;border:1px solid rgba(100,116,139,0.2);border-radius:99px">← Ep02</a>
+        <a href="episode3.html" style="font-size:11px;color:var(--muted);text-decoration:none;padding:5px 12px;border:1px solid rgba(100,116,139,0.2);border-radius:99px">← Ep03</a>
+        <a href="episode5.html" style="font-size:11px;color:var(--emerald);text-decoration:none;padding:5px 12px;border:1px solid rgba(16,185,129,0.2);border-radius:99px">Ep05 →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav-row">
+  <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">← Previous</button>
+  <div class="nav-dots" id="dots"></div>
+  <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">Continue →</button>
+</div>
+
+<script>
+/* ══════════════════════════════════
+   NAVIGATION WITH TRANSITIONS
+══════════════════════════════════ */
+const TOTAL = 11;
+let cur = 1;
+let isAnimating = false;
+
+const RECOVERY = ['—','—','84.5%','84.5%','84.5%','84.5%','84.5%','84.5%','84.5%','84.5%','84.5%','—'];
+
+function navigate(dir) {
+  const next = cur + dir;
+  if (next < 1 || next > TOTAL || isAnimating) return;
+  transitionTo(next, dir > 0 ? 'forward' : 'back');
+}
+
+function goTo(n) {
+  if (isAnimating) return;
+  const dir = n > cur ? 'forward' : 'back';
+  transitionTo(n, dir);
+}
+
+function transitionTo(next, dir) {
+  isAnimating = true;
+  const outEl = document.getElementById('s' + cur);
+  const inEl  = document.getElementById('s' + next);
+
+  inEl.classList.remove('enter-right','enter-left','exit-left','exit-right','active');
+  inEl.style.display = 'flex';
+  inEl.style.opacity = '0';
+
+  outEl.classList.add(dir === 'forward' ? 'exit-left' : 'exit-right');
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      inEl.classList.add(dir === 'forward' ? 'enter-right' : 'enter-left');
+      inEl.style.opacity = '';
+    });
+  });
+
+  setTimeout(() => {
+    outEl.classList.remove('active','exit-left','exit-right');
+    outEl.style.display = '';
+    inEl.classList.remove('enter-right','enter-left');
+    inEl.classList.add('active');
+    cur = next;
+    updateHUD();
+    runEntranceAnimations();
+    animateBars();
+    animateWaterfallBars();
+    window.scrollTo(0, 0);
+    isAnimating = false;
+  }, 460);
+}
+
+function updateHUD() {
+  document.getElementById('hud-screen').textContent = cur + ' / ' + TOTAL;
+  document.getElementById('hud-recovery').textContent = RECOVERY[cur];
+  document.getElementById('prevBtn').style.visibility = cur === 1 ? 'hidden' : 'visible';
+  document.getElementById('nextBtn').style.visibility = (cur === TOTAL || cur === 10) ? 'hidden' : 'visible';
+  document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i+1 === cur));
+}
+
+function animateBars() {
+  document.querySelectorAll('#s'+cur+' .str-fill').forEach(b => {
+    b.style.width = '0';
+    setTimeout(() => { b.style.width = (b.dataset.w || '0'); }, 150);
+  });
+}
+
+function animateWaterfallBars() {
+  document.querySelectorAll('#s'+cur+' .wf-bar').forEach((b, i) => {
+    const tw = b.style.width || '0%';
+    b.style.setProperty('--tw', tw);
+    b.classList.remove('animated');
+    b.style.width = '0';
+    setTimeout(() => { b.classList.add('animated'); }, 100 + i * 80);
+  });
+}
+
+function runEntranceAnimations() {
+  const s = document.getElementById('s' + cur);
+  s.querySelectorAll('.anim-up, .anim-fade, .anim-left').forEach(el => {
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = '';
+  });
+}
+
+// Build dots
+const dotsWrap = document.getElementById('dots');
+for (let i = 1; i <= TOTAL; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 1 ? ' active' : '');
+  d.onclick = () => goTo(i);
+  dotsWrap.appendChild(d);
+}
+updateHUD();
+animateWaterfallBars();
+
+/* ══════════════════════════════════
+   SCROLL (desktop) + SWIPE (mobile)
+══════════════════════════════════ */
+(function initScroll() {
+  let lastWheel = 0;
+  const COOLDOWN = 700;
+
+  const hint = document.createElement('div');
+  hint.id = 'scroll-hint';
+  hint.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="5" y="2" width="14" height="20" rx="7"/>
+      <circle cx="12" cy="8" r="1.5" fill="currentColor" class="scroll-dot-inner"/>
+    </svg>
+    <span>Scroll to navigate</span>`;
+  hint.style.cssText = `
+    position:fixed; bottom:68px; left:50%; transform:translateX(-50%);
+    display:flex; align-items:center; gap:7px;
+    font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+    color:rgba(100,116,139,0.5); pointer-events:none; z-index:998;
+    animation: hintFade 3.5s ease 1.2s forwards;
+  `;
+  document.body.appendChild(hint);
+
+  const ks = document.createElement('style');
+  ks.textContent = `
+    @keyframes hintFade { 0%{opacity:1} 70%{opacity:1} 100%{opacity:0;display:none} }
+    .scroll-dot-inner { animation: scrollBob 1.2s ease-in-out infinite; }
+    @keyframes scrollBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(4px)} }
+    #scroll-hint svg { color: rgba(16,185,129,0.5); }
+  `;
+  document.head.appendChild(ks);
+
+  window.addEventListener('wheel', e => {
+    e.preventDefault();
+    const now = Date.now();
+    if (isAnimating || now - lastWheel < COOLDOWN) return;
+    lastWheel = now;
+    hint.style.display = 'none';
+    if (e.deltaY > 0) navigate(1);
+    else              navigate(-1);
+  }, { passive: false });
+})();
+
+(function initSwipe() {
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchStartTime = 0;
+  const MIN_DIST  = 50;
+  const MAX_VERT  = 80;
+  const MAX_TIME  = 400;
+
+  const mHint = document.createElement('div');
+  mHint.id = 'swipe-hint';
+  mHint.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(16,185,129,0.55)" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    <span>Swipe to navigate</span>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(16,185,129,0.55)" stroke-width="2" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
+  mHint.style.cssText = `
+    position:fixed; bottom:68px; left:50%; transform:translateX(-50%);
+    display:none; align-items:center; gap:8px;
+    font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+    color:rgba(100,116,139,0.5); pointer-events:none; z-index:998;
+    animation: hintFade 3.5s ease 1.2s forwards;
+  `;
+  document.body.appendChild(mHint);
+
+  if ('ontouchstart' in window) { mHint.style.display = 'flex'; }
+
+  document.addEventListener('touchstart', e => {
+    touchStartX    = e.touches[0].clientX;
+    touchStartY    = e.touches[0].clientY;
+    touchStartTime = Date.now();
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
+    if (isAnimating) return;
+    const dx   = e.changedTouches[0].clientX - touchStartX;
+    const dy   = e.changedTouches[0].clientY - touchStartY;
+    const dt   = Date.now() - touchStartTime;
+    if (dt > MAX_TIME || Math.abs(dx) < MIN_DIST || Math.abs(dy) > MAX_VERT) return;
+    mHint.style.display = 'none';
+    if (dx < 0) navigate(1);
+    else        navigate(-1);
+  }, { passive: true });
+})();
+
+/* ══════════════════════════════════
+   PARTICLE SYSTEM
+══════════════════════════════════ */
+(function initParticles() {
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const COLORS = ['rgba(16,185,129,0.5)','rgba(5,150,105,0.4)','rgba(16,185,129,0.2)','rgba(249,115,22,0.22)'];
+
+  function Particle() {
+    this.reset = function() {
+      this.x    = Math.random() * W;
+      this.y    = Math.random() * H;
+      this.r    = Math.random() * 1.4 + 0.3;
+      this.vx   = (Math.random() - 0.5) * 0.3;
+      this.vy   = (Math.random() - 0.5) * 0.3;
+      this.life = Math.random();
+      this.dLife= (Math.random() * 0.003 + 0.001) * (Math.random() > 0.5 ? 1 : -1);
+      this.color= COLORS[Math.floor(Math.random() * COLORS.length)];
+    };
+    this.reset();
+  }
+
+  for (let i = 0; i < 110; i++) particles.push(new Particle());
+
+  function drawConnections() {
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 100) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(16,185,129,${(1 - dist/100) * 0.07})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    drawConnections();
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      p.life += p.dLife;
+      if (p.life > 1 || p.life < 0) p.dLife *= -1;
+      if (p.x < 0 || p.x > W || p.y < 0 || p.y > H) p.reset();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = 0.4 + p.life * 0.5;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+/* ══════════════════════════════════
+   FLYING VECTORS
+══════════════════════════════════ */
+const SVGS = [
+  // Atom / molecule
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="2"/><ellipse cx="12" cy="12" rx="10" ry="4.5"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(120 12 12)"/></svg>`,
+  // Funnel / separator
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h18l-7 8v7l-4 2v-9z"/></svg>`,
+  // Crystal / diamond
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="6,3 18,3 22,9 12,22 2,9"/><path d="M2 9h20M6 3l-4 6M18 3l4 6M12 22 8 9l-2-6M12 22l4-13 2-6"/></svg>`,
+  // Layers / froth stack
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 22,7 12,12 2,7"/><polyline points="2,12 12,17 22,12"/><polyline points="2,17 12,22 22,17"/></svg>`,
+  // Target / concentrate
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>`,
+  // Flask / assay
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M7 16h10"/></svg>`,
+  // Hexagon / mineral cell
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 21,7 21,17 12,22 3,17 3,7"/></svg>`,
+  // Chart bar
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="4" width="4" height="17"/></svg>`,
+];
+
+const VEC_COLORS = [
+  'rgba(16,185,129,0.18)','rgba(5,150,105,0.22)',
+  'rgba(249,115,22,0.14)','rgba(16,185,129,0.12)',
+];
+
+function spawnVectors(layerId, count = 6) {
+  const layer = document.getElementById(layerId);
+  if (!layer) return;
+  layer.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const div = document.createElement('div');
+    div.className = 'vec-item';
+    const size  = 18 + Math.random() * 28;
+    const left  = 3 + Math.random() * 94;
+    const delay = Math.random() * 12;
+    const dur   = 14 + Math.random() * 18;
+    const color = VEC_COLORS[Math.floor(Math.random() * VEC_COLORS.length)];
+    div.innerHTML = SVGS[Math.floor(Math.random() * SVGS.length)];
+    div.style.cssText = `
+      left:${left}%;
+      width:${size}px; height:${size}px;
+      color:${color};
+      animation-duration:${dur}s;
+      animation-delay:-${delay}s;
+      filter: blur(${Math.random() > 0.5 ? '0' : '0.6px'});
+    `;
+    layer.appendChild(div);
+  }
+}
+for (let i = 1; i <= 11; i++) spawnVectors('vec' + i, 5 + Math.floor(Math.random() * 4));
+
+/* ══════════════════════════════════
+   CHARTS
+══════════════════════════════════ */
+Chart.defaults.color = '#64748b';
+Chart.defaults.font.family = 'Segoe UI, Arial, sans-serif';
+
+const EMR  = '#10b981';
+const EMR2 = '#059669';
+const ORG  = '#f97316';
+const CYAN = '#22d3ee';
+const CYN2 = '#0891b2';
+const SLT  = '#1e3a52';
+
+// S3 — Donut: Copper balance
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Recovered to Concentrate','Coarse-Locked Loss','Froth Loss','Slimes / Fines Loss','Middlings Loss'],
+    datasets: [{
+      data: [29200, 1900, 1200, 1200, 1100],
+      backgroundColor: [EMR2, ORG, '#b45309', '#475569', '#334155'],
+      borderColor: '#04111f', borderWidth: 3
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: true,
+    cutout: '62%',
+    plugins: {
+      legend: { position:'right', labels:{ boxWidth:10, padding:12, font:{size:11} } },
+      tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw.toLocaleString() + ' T' } }
+    }
+  }
+});
+
+// S4 — Grind size (P80) vs recovery
+new Chart(document.getElementById('liberationChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'],
+    datasets: [
+      { label:'Grind P80 (µm)', data:[148,152,158,165,170,168,162,160,166,172,175,170],
+        backgroundColor: '#475569', borderRadius:4, yAxisID:'y' },
+      { label:'Recovery (%)', data:[86.5,86.0,85.2,84.3,83.6,84.0,84.8,85.0,84.2,83.5,83.0,83.8],
+        type:'line', borderColor:EMR, backgroundColor:EMR, borderWidth:2, pointRadius:2, tension:0.3, yAxisID:'y1' }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ labels:{ boxWidth:10, font:{size:11} } } },
+    scales:{
+      x:{ grid:{color:'rgba(30,58,82,0.4)'}, ticks:{font:{size:10}} },
+      y:{ position:'left', min:130, max:190, grid:{color:'rgba(30,58,82,0.4)'}, ticks:{font:{size:10}, callback:v=>v+'µm'} },
+      y1:{ position:'right', min:80, max:90, grid:{display:false}, ticks:{font:{size:10}, callback:v=>v+'%'} }
+    }
+  }
+});
+
+// S5 — Tailings copper grade by month
+new Chart(document.getElementById('tailsChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'],
+    datasets: [
+      { label:'Tailings Cu Grade (%)', data:[0.14,0.15,0.16,0.18,0.19,0.18,0.17,0.16,0.18,0.20,0.21,0.19],
+        backgroundColor: ORG, borderRadius:4 },
+      { label:'Target Ceiling (0.13%)', data:[0.13,0.13,0.13,0.13,0.13,0.13,0.13,0.13,0.13,0.13,0.13,0.13],
+        type:'line', borderColor:EMR, borderWidth:2, borderDash:[5,4], pointRadius:0, fill:false }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ labels:{ boxWidth:10, font:{size:11} } } },
+    scales:{
+      x:{ grid:{color:'rgba(30,58,82,0.4)'}, ticks:{font:{size:10}} },
+      y:{ min:0.08, max:0.24, grid:{color:'rgba(30,58,82,0.4)'}, ticks:{font:{size:10}, callback: v => v.toFixed(2)+'%'} }
+    }
+  }
+});
+
+// S6 — RAC Gauge
+new Chart(document.getElementById('gaugeChart'), {
+  type:'bar',
+  data:{
+    labels:['Score'],
+    datasets:[
+      { data:[39], backgroundColor: ORG, borderRadius:4, barThickness:18 },
+      { data:[61], backgroundColor:'rgba(30,58,82,0.5)', borderRadius:4, barThickness:18 }
+    ]
+  },
+  options:{
+    indexAxis:'y', responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false}, tooltip:{enabled:false} },
+    scales:{
+      x:{ max:100, grid:{color:'rgba(30,58,82,0.3)'}, ticks:{font:{size:10}} },
+      y:{ display:false }
+    }
+  }
+});
+
+// S6 — RAC Radar
+new Chart(document.getElementById('racRadar'), {
+  type:'radar',
+  data:{
+    labels:['Online Tailings Assay','Grind Size Control','Froth Monitoring','Reagent Automation','Recovery Feedback Loop','Mass Balance Accuracy'],
+    datasets:[
+      { label:'Mine Alpha', data:[22, 35, 30, 38, 25, 45],
+        backgroundColor:'rgba(249,115,22,0.15)', borderColor:ORG, pointBackgroundColor:ORG, borderWidth:2 },
+      { label:'Best in Class', data:[92, 88, 90, 85, 88, 92],
+        backgroundColor:'rgba(16,185,129,0.08)', borderColor:EMR2, pointBackgroundColor:EMR2, borderWidth:1.5, borderDash:[4,3] }
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ labels:{ boxWidth:10, font:{size:11} } } },
+    scales:{
+      r:{
+        min:0, max:100,
+        grid:{ color:'rgba(30,58,82,0.6)' },
+        angleLines:{ color:'rgba(30,58,82,0.6)' },
+        pointLabels:{ font:{size:10}, color:'#64748b' },
+        ticks:{ display:false }
+      }
+    }
+  }
+});
+
+// S8 — Annual cost by pathway
+new Chart(document.getElementById('annualBar'), {
+  type:'bar',
+  data:{
+    labels:['Grind/Lib.','Froth Ctrl','No Feedback','Regrind','Reagent','Base'],
+    datasets:[{
+      data:[43.2, 34.2, 27.0, 21.6, 16.2, 9.0],
+      backgroundColor:[EMR,EMR,EMR,ORG,ORG,'#334155'],
+      borderRadius:4
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false}, tooltip:{
+      callbacks:{ label: ctx => '₹' + ctx.raw.toFixed(1) + ' Cr' }
+    }},
+    scales:{
+      x:{ grid:{display:false}, ticks:{font:{size:9}} },
+      y:{ grid:{color:'rgba(30,58,82,0.4)'}, ticks:{font:{size:10}, callback: v => '₹'+v+'Cr'} }
+    }
+  }
+});
+
+// S9 — Benchmark bar (recovery %)
+new Chart(document.getElementById('benchBar'), {
+  type:'bar',
+  data:{
+    labels:['Mine Alpha','Mine Beta','Mine Gamma','Mine Delta','Best in Class'],
+    datasets:[{
+      data:[84.5, 87.2, 89.0, 90.3, 91.5],
+      backgroundColor:[ORG,'#475569','#475569','#475569',EMR2],
+      borderRadius:4
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ctx.raw + '% recovery' } } },
+    scales:{
+      x:{ grid:{display:false}, ticks:{font:{size:10}} },
+      y:{ min:80, max:93, grid:{color:'rgba(30,58,82,0.4)'}, ticks:{font:{size:10}, callback: v => v+'%'} }
+    }
+  }
+});
+</script>
+</body>
+</html>
